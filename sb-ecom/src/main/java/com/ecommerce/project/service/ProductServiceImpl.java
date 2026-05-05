@@ -49,6 +49,12 @@ public class ProductServiceImpl implements ProductService {
     private FileService fileService;
 
     @Autowired
+    private ProductKnowledgeService productKnowledgeService;
+
+    @Autowired
+    private ScraperService scraperService;
+
+    @Autowired
     AuthUtil authUtil;
 
     @Value("${project.image}")
@@ -75,13 +81,14 @@ public class ProductServiceImpl implements ProductService {
 
         if (isProductNotPresent) {
             Product product = modelMapper.map(productDTO, Product.class);
-            product.setImage("default.png");
+            product.setImage(resolveProductImage(productDTO.getImage()));
             product.setCategory(category);
             product.setUser(authUtil.loggedInUser());
             double specialPrice = product.getPrice() -
                     ((product.getDiscount() * 0.01) * product.getPrice());
             product.setSpecialPrice(specialPrice);
             Product savedProduct = productRepository.save(product);
+            productKnowledgeService.indexProduct(savedProduct);
             return modelMapper.map(savedProduct, ProductDTO.class);
         } else {
             throw new APIException("Product already exist!!");
@@ -190,6 +197,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private String constructImageUrl(String imageName) {
+        if (!hasText(imageName)) {
+            return constructImageUrl("default.png");
+        }
+
+        if (isExternalUrl(imageName)) {
+            return imageName;
+        }
+
         return imageBaseUrl.endsWith("/") ? imageBaseUrl + imageName : imageBaseUrl + "/" + imageName;
     }
 
@@ -213,7 +228,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         List<ProductDTO> productDTOS = products.stream()
-                .map(product -> modelMapper.map(product, ProductDTO.class))
+                .map(this::toProductDTO)
                 .toList();
 
         ProductResponse productResponse = new ProductResponse();
@@ -237,7 +252,7 @@ public class ProductServiceImpl implements ProductService {
 
         List<Product> products = pageProducts.getContent();
         List<ProductDTO> productDTOS = products.stream()
-                .map(product -> modelMapper.map(product, ProductDTO.class))
+                .map(this::toProductDTO)
                 .toList();
 
         if(products.isEmpty()){
@@ -267,8 +282,12 @@ public class ProductServiceImpl implements ProductService {
         productFromDb.setDiscount(product.getDiscount());
         productFromDb.setPrice(product.getPrice());
         productFromDb.setSpecialPrice(product.getSpecialPrice());
+        if (hasText(productDTO.getImage())) {
+            productFromDb.setImage(resolveProductImage(productDTO.getImage()));
+        }
 
         Product savedProduct = productRepository.save(productFromDb);
+        productKnowledgeService.indexProduct(savedProduct);
 
         List<Cart> carts = cartRepository.findCartsByProductId(productId);
 
@@ -298,6 +317,7 @@ public class ProductServiceImpl implements ProductService {
         List<Cart> carts = cartRepository.findCartsByProductId(productId);
         carts.forEach(cart -> cartService.deleteProductFromCart(cart.getCartId(), productId));
 
+        productKnowledgeService.removeProduct(product);
         productRepository.delete(product);
         return modelMapper.map(product, ProductDTO.class);
     }
@@ -311,7 +331,88 @@ public class ProductServiceImpl implements ProductService {
         productFromDb.setImage(fileName);
 
         Product updatedProduct = productRepository.save(productFromDb);
+        productKnowledgeService.indexProduct(updatedProduct);
         return modelMapper.map(updatedProduct, ProductDTO.class);
+    }
+
+    @Override
+    public ProductDTO updateProductImageUrl(Long productId, String imageUrl) {
+        Product productFromDb = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+
+        if (!isExternalUrl(imageUrl)) {
+            throw new APIException("Enter a valid image URL starting with http:// or https://");
+        }
+
+        productFromDb.setImage(resolveProductImage(imageUrl));
+        Product updatedProduct = productRepository.save(productFromDb);
+        productKnowledgeService.indexProduct(updatedProduct);
+        return modelMapper.map(updatedProduct, ProductDTO.class);
+    }
+
+    @Override
+    public ProductDTO importProductPreview(String productUrl) {
+        if (!isExternalUrl(productUrl)) {
+            throw new APIException("Enter a valid Amazon or Flipkart URL.");
+        }
+
+        ScraperService.ScrapedProduct scrapedProduct = scraperService.scrapeProduct(productUrl);
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setProductName(limit(scrapedProduct.productName(), 120));
+        productDTO.setDescription(limit(scrapedProduct.description(), 255));
+        productDTO.setImage(scrapedProduct.imageUrl());
+
+        double price = scrapedProduct.price() == null ? 0 : scrapedProduct.price();
+        productDTO.setPrice(price);
+        productDTO.setDiscount(0);
+        productDTO.setSpecialPrice(price);
+        productDTO.setQuantity(1);
+        return productDTO;
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private boolean isExternalUrl(String value) {
+        if (!hasText(value)) {
+            return false;
+        }
+
+        String url = value.trim().toLowerCase();
+        return url.startsWith("http://") || url.startsWith("https://");
+    }
+
+    private String limit(String value, int maxLength) {
+        if (!hasText(value)) {
+            return "";
+        }
+
+        String trimmed = value.trim();
+        return trimmed.length() <= maxLength ? trimmed : trimmed.substring(0, maxLength);
+    }
+
+    private ProductDTO toProductDTO(Product product) {
+        ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
+        productDTO.setImage(constructImageUrl(product.getImage()));
+        return productDTO;
+    }
+
+    private String resolveProductImage(String imageValue) {
+        if (!hasText(imageValue)) {
+            return "default.png";
+        }
+
+        String normalizedImage = imageValue.trim();
+        if (!isExternalUrl(normalizedImage)) {
+            return normalizedImage;
+        }
+
+        try {
+            return fileService.uploadImageFromUrl(path, normalizedImage);
+        } catch (IOException ex) {
+            return normalizedImage;
+        }
     }
 
 

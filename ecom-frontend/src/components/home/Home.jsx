@@ -16,7 +16,7 @@ const Home = () => {
         dispatch(fetchProducts());
     }, [dispatch]);
     return (
-        <div className="lg:px-14 sm:px-8 px-4">
+        <div className="min-h-[calc(100vh-70px)] bg-home-gradient lg:px-14 sm:px-8 px-4">
             <div className="py-6">
                 <HeroBanner />
             </div>

@@ -4,13 +4,14 @@ import Spinners from '../../shared/Spinners';
 import { Button } from '@mui/material';
 import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateProductImageFromDashboard } from '../../../store/actions';
+import { updateProductImageFromDashboard, updateProductImageUrlFromDashboard } from '../../../store/actions';
 
 const ImageUploadForm = ({ setOpen, product }) => {
     const [loader, setLoader] = useState(false);
     const fileInputRef = useRef();
     const [previewImage, setPreviewImage] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [imageUrl, setImageUrl] = useState(product?.image || "");
     const dispatch = useDispatch();
 
     const { user } = useSelector((state) => state.auth);
@@ -25,6 +26,7 @@ const ImageUploadForm = ({ setOpen, product }) => {
             };
             reader.readAsDataURL(file);
             setSelectedFile(file);
+            setImageUrl("");
         } else {
             toast.error("Please select a valid image file (.jpeg, .jpg, .png)");
             setPreviewImage(null);
@@ -35,8 +37,13 @@ const ImageUploadForm = ({ setOpen, product }) => {
 
     const addNewImageHandler = async (event) => {
         event.preventDefault();
+        if (imageUrl?.trim()) {
+            dispatch(updateProductImageUrlFromDashboard(imageUrl.trim(), product.id, toast, setLoader, setOpen, isAdmin));
+            return;
+        }
+
         if (!selectedFile) {
-            toast.error("Please select an image before saving.");
+            toast.error("Please select an image or paste an image URL before saving.");
             return;
         }
 
@@ -49,6 +56,7 @@ const ImageUploadForm = ({ setOpen, product }) => {
     const handleClearImage = () => {
         setPreviewImage(null);
         setSelectedFile(null);
+        setImageUrl("");
         fileInputRef.current.value = null;
     };
 
@@ -66,6 +74,26 @@ const ImageUploadForm = ({ setOpen, product }) => {
                         className='hidden'
                         accept='.jpeg, .jpg, .png'/>
                 </label>
+
+                <div className='flex flex-col gap-1 w-full'>
+                    <label className='font-semibold text-sm text-slate-800'>
+                        Image URL
+                    </label>
+                    <input
+                        type='url'
+                        value={imageUrl}
+                        onChange={(event) => {
+                            setImageUrl(event.target.value);
+                            setSelectedFile(null);
+                            setPreviewImage(event.target.value);
+                        }}
+                        placeholder='https://example.com/product-image.jpg'
+                        className='px-2 py-2 border outline-hidden bg-transparent text-slate-800 rounded-md border-slate-700'
+                    />
+                    <p className='text-xs text-slate-500'>
+                        Paste a direct image link. Regular Google image search page URLs are not image files.
+                    </p>
+                </div>
 
                 {previewImage && (
                     <div>

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
-import { dashboardProductsAction, fetchProducts } from "../store/actions";
+import { dashboardProductsAction, fetchExternalProductResults, fetchProducts } from "../store/actions";
 
 const useProductFilter = () => {
     const [searchParams] = useSearchParams();
@@ -18,7 +18,7 @@ const useProductFilter = () => {
 
         const sortOrder = searchParams.get("sortby") || "asc";
         const categoryParams = searchParams.get("category") || null;
-        const keyword = searchParams.get("keyword") || null;
+        const keyword = searchParams.get("keyword")?.trim() || null;
         params.set("sortBy","price");
         params.set("sortOrder", sortOrder);
 
@@ -34,6 +34,7 @@ const useProductFilter = () => {
         console.log("QUERY STRING", queryString);
         
         dispatch(fetchProducts(queryString));
+        dispatch(fetchExternalProductResults(keyword));
 
     }, [dispatch, searchParams]);
 };

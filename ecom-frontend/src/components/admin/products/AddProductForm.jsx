@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import InputField from '../../shared/InputField';
 import { Button } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { addNewProductFromDashboard, fetchCategories, updateProductFromDashboard } from '../../../store/actions';
+import { addNewProductFromDashboard, fetchCategories, importProductPreviewFromUrl, updateProductFromDashboard } from '../../../store/actions';
 import toast from 'react-hot-toast';
 import Spinners from '../../shared/Spinners';
 import SelectTextField from '../../shared/SelectTextField';
@@ -12,6 +12,7 @@ import ErrorPage from '../../shared/ErrorPage';
 
 const AddProductForm = ({ setOpen, product, update=false}) => {
 const [loader, setLoader] = useState(false);
+const [importLoader, setImportLoader] = useState(false);
 const [selectedCategory, setSelectedCategory] = useState();
 const { categories } = useSelector((state) => state.products);
 const { categoryLoader, errorMessage } = useSelector((state) => state.errors);
@@ -24,16 +25,24 @@ const dispatch = useDispatch();
         handleSubmit,
         reset,
         setValue,
+        watch,
         formState: { errors }
     } = useForm({
         mode: "onTouched"
     });
+    const productUrl = watch("productUrl");
 
     const saveProductHandler = (data) => {
+        const { productUrl: _productUrl, ...productData } = data;
         if(!update) {
+            if (!selectedCategory) {
+                toast.error("Please select a category");
+                return;
+            }
+
             // create new product logic
             const sendData = {
-                ...data,
+                ...productData,
                 categoryId: selectedCategory.categoryId,
             };
             dispatch(addNewProductFromDashboard(
@@ -41,11 +50,20 @@ const dispatch = useDispatch();
             ));
         } else {
             const sendData = {
-                ...data,
+                ...productData,
                 id: product.id,
             };
             dispatch(updateProductFromDashboard(sendData, toast, reset, setLoader, setOpen, isAdmin));
         }
+    };
+
+    const importProductHandler = () => {
+        if (!productUrl) {
+            toast.error("Paste an Amazon or Flipkart product URL first");
+            return;
+        }
+
+        dispatch(importProductPreviewFromUrl(productUrl, toast, setImportLoader, setValue, isAdmin));
     };
 
 
@@ -57,6 +75,7 @@ const dispatch = useDispatch();
             setValue("discount", product?.discount);
             setValue("specialPrice", product?.specialPrice);
             setValue("description", product?.description);
+            setValue("image", product?.image);
         }
     }, [update, product]);
 
@@ -80,6 +99,27 @@ const dispatch = useDispatch();
     <div className='py-5 relative h-full'>
         <form className='space-y-4'
             onSubmit={handleSubmit(saveProductHandler)}>
+            {!update && (
+                <div className='flex md:flex-row flex-col gap-3 w-full items-end'>
+                    <InputField
+                        label="Import from Amazon / Flipkart URL"
+                        id="productUrl"
+                        type="url"
+                        register={register}
+                        placeholder="https://www.amazon.in/... or https://www.flipkart.com/..."
+                        errors={errors}
+                    />
+                    <Button
+                        disabled={importLoader}
+                        type='button'
+                        onClick={importProductHandler}
+                        variant='outlined'
+                        className='h-[42px] min-w-[150px]'>
+                        {importLoader ? "Importing..." : "Import"}
+                    </Button>
+                </div>
+            )}
+
             <div className='flex md:flex-row flex-col gap-4 w-full'>
                 <InputField 
                     label="Product Name"
@@ -101,6 +141,17 @@ const dispatch = useDispatch();
                     />
                 )}
             </div>
+            <InputField
+                label="Product Image URL"
+                id="image"
+                type="url"
+                register={register}
+                placeholder="https://example.com/product-image.jpg"
+                errors={errors}
+            />
+            <p className='text-xs text-slate-500 -mt-2'>
+                Use a direct image file URL. Google search result page links usually will not work.
+            </p>
 
             <div className='flex md:flex-row flex-col gap-4 w-full'>
                 <InputField 

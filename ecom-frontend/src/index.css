@@ -31,6 +31,21 @@ layer(base);
     #f5f5f5,
     #eae7dc
   );
+  --background-image-home-gradient: radial-gradient(
+    circle farthest-corner at 10% 20%,
+    rgba(255, 192, 203, 1) 0%,
+    rgba(203, 160, 236, 1) 96.6%
+  );
+  --background-image-admin-gradient: linear-gradient(
+    90.1deg,
+    rgba(122, 0, 0, 1) 8.1%,
+    rgba(217, 42, 42, 1) 74.4%
+  );
+  --background-image-category-list-gradient: linear-gradient(
+    90.8deg,
+    rgba(27, 53, 68, 1) 2.2%,
+    rgba(110, 180, 135, 1) 84%
+  );
 }
 
 /*

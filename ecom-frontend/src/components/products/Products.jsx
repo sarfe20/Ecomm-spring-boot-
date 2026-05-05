@@ -7,12 +7,13 @@ import Filter from "./Filter";
 import useProductFilter from "../../hooks/useProductFilter";
 import Loader from "../shared/Loader";
 import Paginations from "../shared/Paginations";
+import ExternalProductResults from "./ExternalProductResults";
 
 const Products = () => {
     const { isLoading, errorMessage } = useSelector(
         (state) => state.errors
     );
-    const {products, categories, pagination} = useSelector(
+    const {products, categories, pagination, externalProducts, externalProductsLoading} = useSelector(
         (state) => state.products
     )
     const dispatch = useDispatch();
@@ -41,11 +42,17 @@ const Products = () => {
                         products.map((item, i) => <ProductCard key={i} {...item} />
                         )}
                     </div>
-                    <div className="flex justify-center pt-10">
-                        <Paginations 
-                            numberOfPage = {pagination?.totalPages}
-                            totalProducts = {pagination?.totalElements}/>
-                    </div>
+                    {pagination?.totalPages > 1 && (
+                        <div className="flex justify-center pt-10">
+                            <Paginations 
+                                numberOfPage = {pagination?.totalPages}
+                                totalProducts = {pagination?.totalElements}/>
+                        </div>
+                    )}
+                    <ExternalProductResults
+                        products={externalProducts}
+                        loading={externalProductsLoading}
+                    />
                 </div>
             )}
         </div>

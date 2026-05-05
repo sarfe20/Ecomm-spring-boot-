@@ -10,34 +10,43 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AuthUtil {
+    private static final boolean DISABLE_AUTH_FOR_DEVELOPMENT = true;
+    private static final String DEVELOPMENT_USERNAME = "admin";
 
     @Autowired
     UserRepository userRepository;
 
     public String loggedInEmail(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userRepository.findByUserName(authentication.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + authentication.getName()));
+        User user = loggedInUser();
 
         return user.getEmail();
     }
 
     public Long loggedInUserId(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userRepository.findByUserName(authentication.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + authentication.getName()));
+        User user = loggedInUser();
 
         return user.getUserId();
     }
 
     public User loggedInUser(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = resolveUsername(authentication);
 
-        User user = userRepository.findByUserName(authentication.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + authentication.getName()));
+        User user = userRepository.findByUserName(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
         return user;
 
     }
 
+    private String resolveUsername(Authentication authentication) {
+        if (authentication == null || "anonymousUser".equals(authentication.getName())) {
+            if (DISABLE_AUTH_FOR_DEVELOPMENT) {
+                return DEVELOPMENT_USERNAME;
+            }
+            throw new UsernameNotFoundException("Full authentication is required for this action");
+        }
+
+        return authentication.getName();
+    }
 
 }

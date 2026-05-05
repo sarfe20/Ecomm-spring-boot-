@@ -19,6 +19,7 @@ import AdminProducts from './components/admin/products/AdminProducts'
 import Sellers from './components/admin/sellers/Sellers'
 import Category from './components/admin/categories/Category'
 import Orders from './components/admin/orders/Orders'
+import ChatbotWidget from './components/chatbot/ChatbotWidget'
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
           </Route>
         </Routes>
       </Router>
+      <ChatbotWidget />
       <Toaster position='bottom-center'/>
     </React.Fragment>
   )

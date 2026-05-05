@@ -8,7 +8,7 @@ import { FaBars } from 'react-icons/fa';
 const AdminLayout = () => {
     let [sidebarOpen, setSidebarOpen] = useState(false);
   return (
-    <div>
+    <div className='min-h-screen bg-admin-gradient'>
         <Dialog 
             open={sidebarOpen} 
             onClose={() => setSidebarOpen(false)} 

@@ -37,6 +37,8 @@ import java.util.Set;
 @EnableWebSecurity
 //@EnableMethodSecurity
 public class WebSecurityConfig {
+    private static final boolean DISABLE_AUTH_FOR_DEVELOPMENT = true;
+
     @Autowired
     UserDetailsServiceImpl userDetailsService;
 
@@ -78,20 +80,28 @@ public class WebSecurityConfig {
                 .cors(cors -> {})
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/auth/**").permitAll()
-                                .requestMatchers("/v3/api-docs/**").permitAll()
-                                .requestMatchers("/h2-console/**").permitAll()
-                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/api/seller/**").hasAnyRole("ADMIN","SELLER")
-                                //.requestMatchers("/api/admin/**").permitAll()
-                                .requestMatchers("/api/public/**").permitAll()
-                                .requestMatchers("/swagger-ui/**").permitAll()
-                                .requestMatchers("/api/test/**").permitAll()
-                                .requestMatchers("/images/**").permitAll()
-                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .anyRequest().authenticated()
-                );
+                .authorizeHttpRequests(auth -> {
+                    auth.requestMatchers("/api/auth/**").permitAll()
+                            .requestMatchers("/v3/api-docs/**").permitAll()
+                            .requestMatchers("/h2-console/**").permitAll()
+                            .requestMatchers("/api/products/**").permitAll()
+                            .requestMatchers("/api/public/**").permitAll()
+                            .requestMatchers("/swagger-ui/**").permitAll()
+                            .requestMatchers("/api/test/**").permitAll()
+                            .requestMatchers("/images/**").permitAll()
+                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+
+                    if (DISABLE_AUTH_FOR_DEVELOPMENT) {
+                        // Temporary dev mode: set this flag to false to restore admin/seller role checks.
+                        auth.requestMatchers("/api/admin/**").permitAll()
+                                .requestMatchers("/api/seller/**").permitAll()
+                                .anyRequest().permitAll();
+                    } else {
+                        auth.requestMatchers("/api/admin/**").hasRole("ADMIN")
+                                .requestMatchers("/api/seller/**").hasAnyRole("ADMIN", "SELLER")
+                                .anyRequest().authenticated();
+                    }
+                });
 
         http.authenticationProvider(authenticationProvider());
 

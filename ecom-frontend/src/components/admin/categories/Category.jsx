@@ -98,9 +98,9 @@ const Category = () => {
               </h2>
             </div>
           ) : (
-            <div className="max-w-fit mx-auto">
+            <div className="max-w-fit mx-auto bg-category-list-gradient rounded-lg p-4 shadow-lg">
               <DataGrid
-                className="w-full"
+                className="w-full bg-white"
                 rows={tableRecords}
                 columns={categoryTableColumns(handleEdit, handleDelete)}
                 paginationMode="server"

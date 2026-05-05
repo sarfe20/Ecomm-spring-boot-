@@ -11,7 +11,9 @@ public class OrderRequestDTO {
     private Long addressId;
     private String paymentMethod;
     private String pgName;
+    private String pgOrderId;
     private String pgPaymentId;
+    private String pgSignature;
     private String pgStatus;
     private String pgResponseMessage;
 }

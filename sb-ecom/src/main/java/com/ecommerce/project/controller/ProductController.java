@@ -1,24 +1,39 @@
 package com.ecommerce.project.controller;
 
 import com.ecommerce.project.config.AppConstants;
+import com.ecommerce.project.payload.PriceAnalysisDTO;
+import com.ecommerce.project.payload.PriceDTO;
+import com.ecommerce.project.payload.PriceRequestDTO;
+import com.ecommerce.project.payload.ExternalProductResultDTO;
 import com.ecommerce.project.payload.ProductDTO;
+import com.ecommerce.project.payload.ProductImportRequestDTO;
 import com.ecommerce.project.payload.ProductResponse;
+import com.ecommerce.project.service.PriceService;
 import com.ecommerce.project.service.ProductService;
+import com.ecommerce.project.service.ScraperService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
 public class ProductController {
 
-    @Autowired
-    ProductService productService;
+    private final ProductService productService;
+    private final PriceService priceService;
+    private final ScraperService scraperService;
+
+    public ProductController(ProductService productService, PriceService priceService, ScraperService scraperService) {
+        this.productService = productService;
+        this.priceService = priceService;
+        this.scraperService = scraperService;
+    }
 
     @PostMapping("/admin/categories/{categoryId}/product")
     public ResponseEntity<ProductDTO> addProduct(@Valid @RequestBody ProductDTO productDTO,
@@ -34,6 +49,16 @@ public class ProductController {
         return new ResponseEntity<>(savedProductDTO, HttpStatus.CREATED);
     }
 
+    @PostMapping("/admin/products/import-preview")
+    public ResponseEntity<ProductDTO> importProductPreview(@Valid @RequestBody ProductImportRequestDTO requestDTO) {
+        return new ResponseEntity<>(productService.importProductPreview(requestDTO.getProductUrl()), HttpStatus.OK);
+    }
+
+    @PostMapping("/seller/products/import-preview")
+    public ResponseEntity<ProductDTO> importProductPreviewSeller(@Valid @RequestBody ProductImportRequestDTO requestDTO) {
+        return new ResponseEntity<>(productService.importProductPreview(requestDTO.getProductUrl()), HttpStatus.OK);
+    }
+
     @GetMapping("/public/products")
     public ResponseEntity<ProductResponse> getAllProducts(
             @RequestParam(name = "keyword", required = false) String keyword,
@@ -45,6 +70,13 @@ public class ProductController {
     ){
         ProductResponse productResponse = productService.getAllProducts(pageNumber, pageSize, sortBy, sortOrder, keyword, category);
         return new ResponseEntity<>(productResponse,HttpStatus.OK);
+    }
+
+    @GetMapping("/public/external-products/search")
+    public ResponseEntity<List<ExternalProductResultDTO>> searchExternalProducts(
+            @RequestParam(name = "keyword") String keyword
+    ) {
+        return new ResponseEntity<>(scraperService.searchExternalProducts(keyword), HttpStatus.OK);
     }
 
     @GetMapping("/public/categories/{categoryId}/products")
@@ -84,6 +116,13 @@ public class ProductController {
     public ResponseEntity<ProductDTO> updateProductImage(@PathVariable Long productId,
                                                          @RequestParam("image")MultipartFile image) throws IOException {
         ProductDTO updatedProduct = productService.updateProductImage(productId, image);
+        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+    }
+
+    @PutMapping("/admin/products/{productId}/image-url")
+    public ResponseEntity<ProductDTO> updateProductImageUrl(@PathVariable Long productId,
+                                                            @RequestBody Map<String, String> request) {
+        ProductDTO updatedProduct = productService.updateProductImageUrl(productId, request.get("imageUrl"));
         return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
     }
 
@@ -129,5 +168,44 @@ public class ProductController {
                                                          @RequestParam("image")MultipartFile image) throws IOException {
         ProductDTO updatedProduct = productService.updateProductImage(productId, image);
         return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+    }
+
+    @PutMapping("/seller/products/{productId}/image-url")
+    public ResponseEntity<ProductDTO> updateProductImageUrlSeller(@PathVariable Long productId,
+                                                                  @RequestBody Map<String, String> request) {
+        ProductDTO updatedProduct = productService.updateProductImageUrl(productId, request.get("imageUrl"));
+        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+    }
+
+    @PostMapping("/products/{productId}/prices")
+    public ResponseEntity<PriceDTO> addProductPrice(@PathVariable Long productId,
+                                                    @Valid @RequestBody PriceRequestDTO priceRequestDTO) {
+        PriceDTO priceDTO = priceService.addPriceFromUrl(productId, priceRequestDTO);
+        return new ResponseEntity<>(priceDTO, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/products/{productId}/prices")
+    public ResponseEntity<List<PriceDTO>> getProductPrices(@PathVariable Long productId) {
+        return new ResponseEntity<>(priceService.getPrices(productId), HttpStatus.OK);
+    }
+
+    @GetMapping("/products/{productId}/prices/lowest")
+    public ResponseEntity<PriceDTO> getLowestProductPrice(@PathVariable Long productId) {
+        return new ResponseEntity<>(priceService.getLowestPrice(productId), HttpStatus.OK);
+    }
+
+    @GetMapping("/products/{productId}/prices/highest")
+    public ResponseEntity<PriceDTO> getHighestProductPrice(@PathVariable Long productId) {
+        return new ResponseEntity<>(priceService.getHighestPrice(productId), HttpStatus.OK);
+    }
+
+    @GetMapping("/products/{productId}/prices/history")
+    public ResponseEntity<List<PriceDTO>> getProductPriceHistory(@PathVariable Long productId) {
+        return new ResponseEntity<>(priceService.getPriceHistory(productId), HttpStatus.OK);
+    }
+
+    @GetMapping("/products/{productId}/prices/analysis")
+    public ResponseEntity<PriceAnalysisDTO> getProductPriceAnalysis(@PathVariable Long productId) {
+        return new ResponseEntity<>(priceService.getPriceAnalysis(productId), HttpStatus.OK);
     }
 }

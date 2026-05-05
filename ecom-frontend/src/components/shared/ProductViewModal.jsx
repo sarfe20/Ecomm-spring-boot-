@@ -3,6 +3,8 @@ import { Divider } from '@mui/material';
 import { useState } from 'react'
 import Status from './Status';
 import { MdClose, MdDone } from 'react-icons/md';
+import PriceComparison from '../products/PriceComparison';
+import { formatPrice } from '../../utils/formatPrice';
 
 function ProductViewModal({open, setOpen, product, isAvailable}) {
   
@@ -13,7 +15,7 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
 
   return (
     <>
-      <Dialog open={open} as="div" className="relative z-10" onClose={close}>
+      <Dialog open={open} as="div" className="relative z-10" onClose={() => setOpen(false)}>
       <DialogBackdrop className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
@@ -42,16 +44,16 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
                   {specialPrice ? (
                     <div className="flex items-center gap-2">
                       <span className="text-gray-400 line-through">
-                        ${Number(price).toFixed(2)}
+                        {formatPrice(Number(price))}
                       </span>
                       <span className="sm:text-xl font-semibold text-slate-700">
-                        ${Number(specialPrice).toFixed(2)}
+                        {formatPrice(Number(specialPrice))}
                       </span>
                     </div>
                   ) : (
                     <span className="text-xl font-bold">
                       {" "}
-                      ${Number(price).toFixed(2)}
+                      {formatPrice(Number(price))}
                     </span>
                   )}
 
@@ -76,6 +78,7 @@ function ProductViewModal({open, setOpen, product, isAvailable}) {
 
                 <p>{description}</p>
               </div>
+              {id && <PriceComparison productId={id} />}
                 </div>
 
 

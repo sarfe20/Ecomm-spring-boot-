@@ -1,9 +1,10 @@
-import api from "../../api/api"
+import api, { extractJwtToken } from "../../api/api"
 
 export const fetchProducts = (queryString) => async (dispatch) => {
     try {
         dispatch({ type: "IS_FETCHING" });
-        const { data } = await api.get(`/public/products?${queryString}`);
+        const query = queryString ? `?${queryString}` : "";
+        const { data } = await api.get(`/public/products${query}`);
         dispatch({
             type: "FETCH_PRODUCTS",
             payload: data.content,
@@ -37,7 +38,7 @@ export const fetchCategories = () => async (dispatch) => {
             totalPages: data.totalPages,
             lastPage: data.lastPage,
         });
-        dispatch({ type: "IS_ERROR" });
+        dispatch({ type: "CATEGORY_SUCCESS" });
     } catch (error) {
         console.log(error);
         dispatch({ 
@@ -89,7 +90,7 @@ export const increaseCartQuantity =
 
             dispatch({
                 type: "ADD_CART",
-                payload: {...data, quantity: newQuantity + 1 },
+                payload: {...data, quantity: newQuantity },
             });
             localStorage.setItem("cartItems", JSON.stringify(getState().carts.cart));
         } else {
@@ -124,6 +125,10 @@ export const authenticateSignInUser
             const { data } = await api.post("/auth/signin", sendData);
             dispatch({ type: "LOGIN_USER", payload: data });
             localStorage.setItem("auth", JSON.stringify(data));
+            const token = extractJwtToken(data?.jwtToken);
+            if (token) {
+                localStorage.setItem("jwtToken", token);
+            }
             reset();
             toast.success("Login Success");
             navigate("/");
@@ -156,7 +161,27 @@ export const registerNewUser
 export const logOutUser = (navigate) => (dispatch) => {
     dispatch({ type:"LOG_OUT" });
     localStorage.removeItem("auth");
+    localStorage.removeItem("jwtToken");
     navigate("/login");
+};
+
+export const fetchExternalProductResults = (keyword) => async (dispatch) => {
+    if (!keyword) {
+        dispatch({ type: "FETCH_EXTERNAL_PRODUCTS", payload: [] });
+        dispatch({ type: "EXTERNAL_PRODUCTS_DONE" });
+        return;
+    }
+
+    try {
+        dispatch({ type: "EXTERNAL_PRODUCTS_LOADING" });
+        const { data } = await api.get(`/public/external-products/search?keyword=${encodeURIComponent(keyword)}`);
+        dispatch({ type: "FETCH_EXTERNAL_PRODUCTS", payload: data });
+    } catch (error) {
+        console.log(error);
+        dispatch({ type: "FETCH_EXTERNAL_PRODUCTS", payload: [] });
+    } finally {
+        dispatch({ type: "EXTERNAL_PRODUCTS_DONE" });
+    }
 };
 
 export const addUpdateUserAddress =
@@ -284,37 +309,41 @@ export const getUserCart = () => async (dispatch, getState) => {
 };
 
 
-export const createStripePaymentSecret 
+export const createRazorpayOrder 
     = (sendData) => async (dispatch, getState) => {
         try {
             dispatch({ type: "IS_FETCHING" });
-            const { data } = await api.post("/order/stripe-client-secret", sendData);
-            dispatch({ type: "CLIENT_SECRET", payload: data });
-              localStorage.setItem("client-secret", JSON.stringify(data));
-              dispatch({ type: "IS_SUCCESS" });
+            const { data } = await api.post("/order/razorpay-order", sendData);
+            dispatch({ type: "RAZORPAY_ORDER", payload: data });
+            dispatch({ type: "IS_SUCCESS" });
+            return data;
         } catch (error) {
             console.log(error);
-            toast.error(error?.response?.data?.message || "Failed to create client secret");
+            dispatch({
+                type: "IS_ERROR",
+                payload: error?.response?.data?.message || "Failed to create Razorpay order",
+            });
+            return null;
         }
 };
 
 
-export const stripePaymentConfirmation 
-    = (sendData, setErrorMesssage, setLoadng, toast) => async (dispatch, getState) => {
+export const razorpayPaymentConfirmation 
+    = (sendData, toast, navigate) => async (dispatch, getState) => {
         try {
             const response  = await api.post("/order/users/payments/online", sendData);
             if (response.data) {
                 localStorage.removeItem("CHECKOUT_ADDRESS");
                 localStorage.removeItem("cartItems");
-                localStorage.removeItem("client-secret");
-                dispatch({ type: "REMOVE_CLIENT_SECRET_ADDRESS"});
+                dispatch({ type: "REMOVE_PAYMENT_CHECKOUT_DATA"});
                 dispatch({ type: "CLEAR_CART"});
                 toast.success("Order Accepted");
+                navigate("/order-confirm");
               } else {
-                setErrorMesssage("Payment Failed. Please try again.");
+                toast.error("Payment Failed. Please try again.");
               }
         } catch (error) {
-            setErrorMesssage("Payment Failed. Please try again.");
+            toast.error(error?.response?.data?.message || "Payment Failed. Please try again.");
         }
 };
 
@@ -382,7 +411,8 @@ export const dashboardProductsAction = (queryString, isAdmin) => async (dispatch
     try {
         dispatch({ type: "IS_FETCHING" });
         const endpoint = isAdmin ? "/admin/products" : "/seller/products";
-        const { data } = await api.get(`${endpoint}?${queryString}`);
+        const query = queryString ? `?${queryString}` : "";
+        const { data } = await api.get(`${endpoint}${query}`);
         dispatch({
             type: "FETCH_PRODUCTS",
             payload: data.content,
@@ -413,7 +443,7 @@ export const updateProductFromDashboard =
         reset();
         setLoader(false);
         setOpen(false);
-        await dispatch(dashboardProductsAction());
+        await dispatch(dashboardProductsAction(undefined, isAdmin));
     } catch (error) {
         toast.error(error?.response?.data?.description || "Product update failed");
      
@@ -433,12 +463,36 @@ export const addNewProductFromDashboard =
             toast.success("Product created successfully");
             reset();
             setOpen(false);
-            await dispatch(dashboardProductsAction());
+            await dispatch(dashboardProductsAction(undefined, isAdmin));
         } catch (error) {
-            console.error(err);
-            toast.error(err?.response?.data?.description || "Product creation failed");
+            console.error(error);
+            toast.error(error?.response?.data?.description || error?.response?.data?.message || "Product creation failed");
         } finally {
             setLoader(false);
+        }
+    }
+
+export const importProductPreviewFromUrl =
+    (productUrl, toast, setImportLoader, setValue, isAdmin) => async () => {
+        try {
+            setImportLoader(true);
+            const endpoint = isAdmin ? "/admin/products/import-preview" : "/seller/products/import-preview";
+            const { data } = await api.post(endpoint, { productUrl });
+
+            if (data?.productName) setValue("productName", data.productName);
+            if (data?.description) setValue("description", data.description);
+            if (data?.image) setValue("image", data.image);
+            if (data?.price) setValue("price", data.price);
+            if (data?.quantity) setValue("quantity", data.quantity);
+            setValue("discount", data?.discount ?? 0);
+            setValue("specialPrice", data?.specialPrice ?? data?.price ?? 0);
+
+            toast.success("Imported product details. Please review before saving.");
+        } catch (error) {
+            console.error(error);
+            toast.error(error?.response?.data?.message || "Could not import product details from this URL");
+        } finally {
+            setImportLoader(false);
         }
     }
 
@@ -451,7 +505,7 @@ export const deleteProduct =
         toast.success("Product deleted successfully");
         setLoader(false);
         setOpenDeleteModal(false);
-        await dispatch(dashboardProductsAction());
+        await dispatch(dashboardProductsAction(undefined, isAdmin));
     } catch (error) {
         console.log(error);
         toast.error(
@@ -470,10 +524,26 @@ export const updateProductImageFromDashboard =
         toast.success("Image upload successful");
         setLoader(false);
         setOpen(false);
-        await dispatch(dashboardProductsAction());
+        await dispatch(dashboardProductsAction(undefined, isAdmin));
     } catch (error) {
         toast.error(error?.response?.data?.description || "Product Image upload failed");
      
+    }
+};
+
+export const updateProductImageUrlFromDashboard =
+    (imageUrl, productId, toast, setLoader, setOpen, isAdmin) => async (dispatch) => {
+    try {
+        setLoader(true);
+        const endpoint = isAdmin ? "/admin/products/" : "/seller/products/";
+        await api.put(`${endpoint}${productId}/image-url`, { imageUrl });
+        toast.success("Image URL saved successfully");
+        setOpen(false);
+        await dispatch(dashboardProductsAction(undefined, isAdmin));
+    } catch (error) {
+        toast.error(error?.response?.data?.message || "Product image URL update failed");
+    } finally {
+        setLoader(false);
     }
 };
 
@@ -515,7 +585,9 @@ export const createCategoryDashboardAction =
     } catch (err) {
       console.log(err);
       toast.error(
-        err?.response?.data?.categoryName || "Failed to create new category"
+        err?.response?.data?.categoryName ||
+          err?.response?.data?.message ||
+          "Failed to create new category"
       );
 
       dispatch({

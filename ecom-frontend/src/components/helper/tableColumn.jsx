@@ -1,5 +1,6 @@
 import { FaEdit, FaEye, FaImage, FaTrashAlt } from "react-icons/fa";
 import { MdOutlineEmail } from "react-icons/md";
+import { formatPrice } from "../../utils/formatPrice";
 
 export const adminProductTableColumn = (
   handleEdit,
@@ -10,15 +11,15 @@ export const adminProductTableColumn = (
   {
     disableColumnMenu: true,
     sortable: false,
-    field: "id",
-    headerName: "ID",
-    minWidth: 200,
+    field: "serialNo",
+    headerName: "No.",
+    minWidth: 120,
     headerAlign: "center",
     align: "center",
     editable: false,
     headerClassName: "text-black font-semibold border",
     cellClassName: "text-slate-700 font-normal border",
-    renderHeader: (params) => <span className="text-center">ProductID</span>,
+    renderHeader: (params) => <span className="text-center">No.</span>,
   },
   {
     disableColumnMenu: true,
@@ -45,6 +46,7 @@ export const adminProductTableColumn = (
     headerClassName: "text-black font-semibold border",
     cellClassName: "text-slate-700 font-normal border",
     renderHeader: (params) => <span className="text-center">Price</span>,
+    renderCell: (params) => formatPrice(params?.row?.price || 0),
   },
   {
     disableColumnMenu: true,
@@ -71,6 +73,7 @@ export const adminProductTableColumn = (
     renderHeader: (params) => (
       <span className="text-center">Special Price</span>
     ),
+    renderCell: (params) => formatPrice(params?.row?.specialPrice || 0),
   },
   {
     sortable: false,
@@ -188,6 +191,7 @@ export const adminOrderTableColumn = (handleEdit) => [
     headerClassName: "text-black font-semibold text-center border ",
     cellClassName: "text-slate-700 font-normal border text-center",
     renderHeader: (params) => <span>Total Amount</span>,
+    renderCell: (params) => formatPrice(params?.row?.totalAmount || 0),
   },
   {
     // Column to display order status (e.g., Pending, Shipped).

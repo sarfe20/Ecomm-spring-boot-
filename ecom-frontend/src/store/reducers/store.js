@@ -16,13 +16,13 @@ const cartItems = localStorage.getItem("cartItems")
     ? JSON.parse(localStorage.getItem("cartItems"))
     : [];
 
-const selectUserCheckoutAddress = localStorage.getItem("CHECKOUT_ADDRESS")
+const selectedUserCheckoutAddress = localStorage.getItem("CHECKOUT_ADDRESS")
     ? JSON.parse(localStorage.getItem("CHECKOUT_ADDRESS"))
-    : [];
+    : null;
 
 const initialState = {
-    auth: { user: user, selectUserCheckoutAddress },
-    carts: { cart: cartItems },
+    auth: { user, selectedUserCheckoutAddress },
+    carts: { cart: cartItems, totalPrice: 0, cartId: null },
 };
 
 export const store = configureStore({

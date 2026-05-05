@@ -1,5 +1,7 @@
 const initialState = {
     products: null,
+    externalProducts: [],
+    externalProductsLoading: false,
     categories: null,
     pagination: {},
 };
@@ -32,6 +34,24 @@ export const productReducer = (state = initialState, action) => {
                     totalPages: action.totalPages,
                     lastPage: action.lastPage,
                 },
+            };
+
+        case "EXTERNAL_PRODUCTS_LOADING":
+            return {
+                ...state,
+                externalProductsLoading: true,
+            };
+
+        case "FETCH_EXTERNAL_PRODUCTS":
+            return {
+                ...state,
+                externalProducts: action.payload,
+            };
+
+        case "EXTERNAL_PRODUCTS_DONE":
+            return {
+                ...state,
+                externalProductsLoading: false,
             };
     
         case "FETCH_CATEGORIES":

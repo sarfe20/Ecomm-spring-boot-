@@ -35,6 +35,7 @@ public class Product {
     private double price;
     private double discount;
     private double specialPrice;
+    private String aiDocumentIds;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
@@ -46,4 +47,8 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     private List<CartItem> products = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<Price> prices = new ArrayList<>();
 }

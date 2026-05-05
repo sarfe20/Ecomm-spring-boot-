@@ -46,9 +46,11 @@ const AdminProducts = () => {
 
   useDashboardProductFilter();
 
-  const tableRecords = products?.map((item) => {
+  const pageSize = pagination?.pageSize || 10;
+  const tableRecords = products?.map((item, index) => {
   return {
     id: item.productId,
+    serialNo: (currentPage - 1) * pageSize + index + 1,
     productName: item.productName,
     description: item.description,
     discount: item.discount,
@@ -121,9 +123,9 @@ const onDeleteHandler = () => {
           </h2>
         </div>
       ) : (
-        <div className='max-w-full'>
+        <div className='max-w-full bg-category-list-gradient rounded-lg p-4 shadow-lg'>
           <DataGrid
-            className='w-full'
+            className='w-full bg-white'
             rows={tableRecords}
             columns={adminProductTableColumn(
               handleEdit,
