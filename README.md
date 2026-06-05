@@ -1,80 +1,172 @@
-This is the Official repository of **Java Spring Boot: Professional eCommerce Project Masterclass** on Udemy
+# AI Powered E-Commerce Platform with Chatbot, Personal Recommendation & Price Comparator System
 
-# The Ultimate Java and Spring Boot Mastery Roadmap
+A full-stack AI-powered e-commerce platform that enhances online shopping through personalized recommendations, intelligent chatbot assistance, marketplace price comparison, historical price tracking, and secure payment integration.
 
-Welcome to your one-stop-shop for mastering Java and Spring Boot! This repository offers a comprehensive learning experience with high-quality resources and community support. Dive into over 150+ hours of premium content, with everything you need to excel at Java and Spring Boot development.
+## Features
 
-## 🎓 Learning Roadmap
+* AI-powered product recommendations
+* Integrated chatbot for customer assistance
+* Multi-platform product price comparison
+* Historical price trend analysis
+* JWT Authentication & Spring Security
+* Secure Razorpay payment integration
+* Product search and category filtering
+* Shopping cart and order management
+* Admin dashboard for product and order management
+* Responsive user interface
 
-Most of the courses below are available in **Udemy For Business**, so if you have subscription - you can get FREE access.
-Here’s a structured path to enhance your skills with detailed courses available:
+## Tech Stack
 
-1. **[Spring Boot By Building Complex Projects Step by Step](https://link.embarkx.com/spring-boot) (90+ Hours of Content)**
-2. **[Master Spring Boot Microservices by Building eCommerce Project](https://link.embarkx.com/microservices) (55+ Hours of Content)**
-3. **[Full Stack AI DevOps for Software Developers (AWS, Azure, GCP)](https://link.embarkx.com/devops) (20+ Hours of Content)**
-4. **[Learn Java with 60+ Hours of Content](http://link.embarkx.com/java) (60+ Hours of Content)**
-5. **[Master Spring Security with React JS + OAuth2](https://link.embarkx.com/spring-security) (34+ Hours of Content)**
-6. **[Master IntelliJ IDEA](http://link.embarkx.com/intellij) (3+ Hours of Content)**
+### Frontend
 
+* React.js
+* React Router
+* Axios
+* HTML, CSS, JavaScript
 
-## 🌟 With All Our Courses You Gain Access To
+### Backend
 
-- 📝 **Notes:** Detailed and downloadable notes to accompany each lesson.
-- 💻 **Source Code:** Full access to the source code used in the tutorials.
-- 🤔 **Doubt Solving:** Responsive instructor and community support.
-- 🎥 **High-Quality HD Videos:** Easy to understand, high-definition video tutorials.
-- 🔄 **Free Lifetime Updates:** Continuous updates to course content at no extra cost.
+* Spring Boot
+* Spring Security
+* Spring Data JPA
+* Hibernate
 
-## 📚 Why Choose This Mastery Series?
+### Database
 
-With this series, you're not just learning; you're preparing to dominate the field of Java and Spring Boot development. Our structured learning path ensures that you build your skills progressively, with each course designed to build on the knowledge gained from the previous one.
+* MySQL
 
-### Join Us Now!
+### Authentication
 
-Start your journey today to become a master at Java and Spring Boot. Our community and expert instructors are here to support your learning every step of the way. **Enroll and start building your future, today!**
+* JWT (JSON Web Token)
 
+### Payment Gateway
 
+* Razorpay
 
+### Tools
 
+* Git
+* GitHub
+* Postman
+* IntelliJ IDEA
+* VS Code
 
-# Usage Policy for Course Materials
+## System Architecture
 
-## Instructor Information
+Frontend (React.js)
 
-**Instructor:** Faisal Memon  
-**Company:** [EmbarkX.com](http://www.embarkx.com)
+↓
 
-## Policy Overview
+REST APIs
 
-This document outlines the guidelines and restrictions concerning the use of course materials provided by EmbarkX, including but not limited to PDF presentations, code samples, and video tutorials.
+↓
 
-### 1. Personal Use Only
+Backend (Spring Boot)
 
-The materials provided in this course are intended for **your personal use only**. They are to be used solely for the purpose of learning and completing this course.
+↓
 
-### 2. No Unauthorized Sharing or Distribution
+Authentication (JWT + Spring Security)
 
-You are **not permitted** to share, distribute, or publicly post any course materials on any websites, social media platforms, or other public forums without prior written consent from the instructor.
+↓
 
-### 3. Intellectual Property
+MySQL Database
 
-All course materials are protected by copyright laws and are the intellectual property of Faisal Memon and EmbarkX. Unauthorized use, reproduction, or distribution of these materials is **strictly prohibited**.
+↓
 
-### 4. Reporting Violations
+External Services (Razorpay, Price Comparator Module)
 
-If you become aware of any unauthorized sharing or distribution of course materials, please report it immediately to [embarkxofficial@gmail.com](mailto:embarkxofficial@gmail.com).
+## Core Modules
 
-### 5. Legal Action
+### User Module
 
-We reserve the right to take legal action against individuals or entities found to be violating this usage policy.
+* Registration and Login
+* Profile Management
+* Order History
 
-## Thank You
+### Product Module
 
-Thank you for respecting these guidelines and helping us maintain the integrity of our course materials.
+* Product Listing
+* Product Search
+* Category Filtering
 
-## Contact Information
+### Recommendation Module
 
-- **Email:** [embarkxofficial@gmail.com](mailto:embarkxofficial@gmail.com)
-- **Website:** [www.embarkx.com](http://www.embarkx.com)
+* Personalized Product Suggestions
+* User Preference Analysis
+
+### Chatbot Module
+
+* Product Assistance
+* Customer Query Handling
+
+### Price Comparator Module
+
+* Marketplace Price Comparison
+* Historical Price Tracking
+* Price Trend Analysis
+
+### Payment Module
+
+* Secure Online Transactions
+* Razorpay Integration
+
+### Admin Module
+
+* Product Management
+* Order Management
+* User Management
+* Analytics Dashboard
+
+## Installation
+
+### Clone Repository
+
+git clone https://github.com/yourusername/ai-powered-ecommerce.git
+
+cd ai-powered-ecommerce
+
+### Backend Setup
+
+Configure MySQL in application.properties
+
+Run:
+
+mvn clean install
+
+mvn spring-boot:run
+
+### Frontend Setup
+
+npm install
+
+npm start
+
+Frontend: http://localhost:3000
+
+Backend: http://localhost:8080
+
+## Project Structure
+
+backend/
+├── controller/
+├── service/
+├── repository/
+├── entity/
+├── security/
+
+frontend/
+├── components/
+├── pages/
+├── services/
+├── context/
+
+## Future Enhancements
+
+* Advanced machine learning recommendation engine
+* Real-time order tracking
+* Predictive price analytics
+* Multi-vendor marketplace support
+* Mobile application development
+* Cloud deployment using AWS or Azure
 
 
