@@ -117,33 +117,6 @@ External Services (Razorpay, Price Comparator Module)
 * User Management
 * Analytics Dashboard
 
-## Installation
-
-### Clone Repository
-
-git clone https://github.com/yourusername/ai-powered-ecommerce.git
-
-cd ai-powered-ecommerce
-
-### Backend Setup
-
-Configure MySQL in application.properties
-
-Run:
-
-mvn clean install
-
-mvn spring-boot:run
-
-### Frontend Setup
-
-npm install
-
-npm start
-
-Frontend: http://localhost:3000
-
-Backend: http://localhost:8080
 
 ## Project Structure
 
