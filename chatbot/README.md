@@ -1,4 +1,4 @@
-# VectorDB - Build a Vector Database from Scratch in C++
+
 
 A C++ implementation of a Vector Database that demonstrates how modern semantic search engines work internally. The project supports multiple nearest neighbor search algorithms, vector similarity metrics, and a Retrieval-Augmented Generation (RAG) pipeline using Ollama.
 
